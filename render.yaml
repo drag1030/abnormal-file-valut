@@ -1,0 +1,35 @@
+# render.yaml
+
+databases:
+  - name: abnormal-db
+    plan: starter
+
+services:
+  - type: web
+    name: abnormal-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile         # Adjust if your Dockerfile is elsewhere
+    buildCommand: pip install -r requirements.txt
+    startCommand: ./start.sh                      # Your start script to run migrations & gunicorn
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: abnormal-db
+          property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+    plan: starter
+    autoDeploy: true
+
+  - type: web
+    name: abnormal-frontend
+    env: docker
+    dockerfilePath: ./frontend/Dockerfile        # Adjust path accordingly
+    startCommand: serve -s build -l 3000         # Serve built React static files
+    envVars:
+      - key: REACT_APP_API_URL
+        value: "https://abnormal-backend.onrender.com/api"   # Update with your backend URL
+    plan: starter
+    autoDeploy: true
