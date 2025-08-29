@@ -1,0 +1,108 @@
+📓 AI Prompt Log – Abnormal File Vault - this is the prompts i have used 
+Backend – Django
+File Model with Deduplication
+
+text
+Create a Django model for file uploads with:
+- Fields: original_filename, file (FileField), file_type, size, hash, uploaded_at
+- Method to calculate SHA256 hash from file content
+- Add db_index where necessary for performance
+- This model will be used for deduplication logic
+(Used Copilot for structure; manually added db_index and tweaked hashing for file reset.)
+
+Deduplication Logic in Serializer
+
+text
+In Django REST Framework, create a ModelSerializer for the File model that:
+- Checks if a file with the same hash exists
+- If yes: re-use existing file and size (do not re-upload), return deduplicated flag
+- If no: store file normally
+(Cursor suggested base logic; I optimised with validated_data removal on duplicates.)
+
+FilterSet for Searching and Filtering
+
+text
+Create a django-filter FilterSet for the File model:
+- Filter by original_filename__icontains
+- Filter by exact file_type
+- Size range (gte/lte)
+- Date range with DateFromToRangeFilter
+- Exact date match with DateFilter
+(Claude provided initial scaffold; I adjusted field names to match frontend params exactly.)
+
+Storage Savings View
+
+text
+Add a DRF ViewSet action that:
+- Calculates total_potential_size (total size of all records)
+- Calculates actual_storage_used (sum of distinct hashes' size)
+- Returns both plus saved_bytes and human_readable formats
+(AI provided pseudocode; I implemented queryset .values("hash").distinct() for performance.)
+
+Frontend – React + TypeScript
+FilterPanel Component
+
+text
+Create a React functional component for filtering:
+- Input: search by filename
+- Dropdown: file type
+- Min/max numeric size fields
+- Date pickers: start date, end date, exact date
+- Exact date should disable date range and vice versa
+- Validate inputs (size logic, date logic)
+- On Apply: return filters object matching backend params
+(AI generated layout; I refactored with Tailwind, hex theme colors, and type safety.)
+
+FileUpload Component with Progress
+
+text
+Create React component for file upload:
+- Support click to upload and drag & drop
+- Validate max size 10MB
+- Show selected file
+- Show progress bar while uploading
+- Call API via fileService
+- Show toast on success/error, including deduplication message
+(Copilot drafted structure; I added gradient CTA, dark theme, and dedup toast.)
+
+FileList Component with Pagination
+
+text
+Create a list view for files:
+- Show filename, file type, human size
+- Download and delete buttons
+- Paginate with Previous/Next
+- Previous button is styled differently but matches theme, with hover states
+- Add empty state component
+(Cursor built layout; I improved UX with hover backgrounds and accessible buttons.)
+
+Docker & DevOps
+Backend Dockerfile with Healthcheck Support
+
+text
+Optimise Python slim Dockerfile for Django:
+- Install curl for healthcheck
+- Install build-essential
+- Upgrade pip, install reqs
+- Collect staticfiles at build
+- Prepare /media, /staticfiles, /data with correct permissions
+(AI wrote Dockerfile skeleton; I added curl and volume folder chmod.)
+
+start.sh Script
+
+text
+Shell script to:
+- Exit if commands fail
+- Prepare dir structure
+- Run migrate
+- Collect static with --clear
+- Start gunicorn with 3 workers
+(Claude gave base order; I added chmod and fail-fast.)
+
+docker-compose with Healthcheck
+
+text
+Add backend healthcheck to docker-compose:
+- Test: curl http://localhost:8000/api/files/
+- Make frontend depend on backend healthy
+(Cursor provided syntax; I customised timing/start_period and path.)
